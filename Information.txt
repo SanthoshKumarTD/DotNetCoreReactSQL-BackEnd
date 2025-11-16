@@ -1,0 +1,537 @@
+in this video we are creating small application using react and dot net code web api and back end as sql. We are using DB first approch.
+Pre requessts and run empty project
+
+For front
+1. For front end we are using react - for react application we need to install node js from follwoing website https://nodejs.org/en/download
+2. to check the node installed properly use
+	node -v in the command prompt
+3. create react folder for react project - use the below command
+	npm creat vite   Vite (French word for "quick", pronounced /vit/ , like "veet")
+4. open the terminal and write npm install
+	This will install all of the dependencies releated to node js into our application created. (Node_Modules on top of the application will add if not added it will add)
+4. to build the project 
+	npm run build
+5. run the project using
+	npm run dev
+6. instal Simple react snippis for sugestions  
+	Simple React Snippits 
+7. install ES7 react redux
+	use this rafce for immediate function	  these are very usefull snippits for suggestions.
+	
+
+Open the Extensions sidebar (Ctrl+Shift+X or Cmd+Shift+X).
+Search for "ES7+ React/Redux/React-Native snippets" (publisher dsznajder). install for shortcut for Typescripts
+
+Follow the instruction given on the website and install Tailwind css inot the application for the look and feel
+https://tailwindcss.com/docs/text-align
+
+tailwind css - utility first framework
+https://tailwindcss.com/    - click on get started and go to Using vite and copy the installation guide.
+this is the new CSS tool. And older one is bootstarp.
+
+1. npm install tailwindcss @tailwindcss/vite
+2. import tailwindcss from '@tailwindcss/vite'
+3. add to the plugin's  tailwindcss(),
+4. add to the index.html @import "tailwindcss";
+
+back end- Data
+For backend we are using sql server
+Creating table called Login and inserting 2 records for time being
+
+
+BackEnd - Code
+for backend we are using dot net code web api
+Install visula studio 2022. 
+and select new project called ASP.Net Core WebApi and create a project on the same folder where we ceated the front end project.
+Go to dependencies and install following entity framework nuget packages.
+microsoft.entityframeworkcore
+1. microsoft.entityframeworkcore
+2. microsoft.entityframeworkcore.SqlServer
+3. microsoft.entityframeworkcore.Tools
+
+As we doing the Database first approch, create the model folder and and run the below commads in the package manager console
+View-OtherWindows-PackageManagerConsole
+with userName and apssword
+Scaffold-DbContext "Server=DESKTOP-CKO84CN\SQLEXPRESS;Database=BARandResto;User Id=your_user_id;Password=your_password;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir Data -Context YourDbContextName -UseDatabaseNames -NoPluralize -Tables "Table1", "Table2"
+
+Without UserName and password
+Scaffold-DbContext "Server=DESKTOP-CKO84CN\SQLEXPRESS;Database=BARandResto;Trusted_Connection=True;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir Data -Context YourDbContextName
+
+after this rewmovve unwanted code to keep it simple. 
+
+ public BarandRestoDbContext()
+ {
+ }
+ public BarandRestoDbContext(DbContextOptions<BarandRestoDbContext> options)
+     : base(options)
+ {
+ }
+ public virtual DbSet<BarLogin> BarLogins { get; set; }   
+ 
+ - Add the connection string in the appSettings.Json file
+ "AppDbConnection": "Data Source=DESKTOP-CKO84CN\\SQLEXPRESS;Initial Catalog=BARandResto;Integrated Security=True; Trusted_Connection=True; TrustServerCertificate=True;"
+ 
+Once we specify the connection string in appsetting.json file, we need call out the connection string in program.cs file using IConfiguration
+IConfiguration config;
+config = new COnfigurationBuilder().AddJsonFile("").Build();
+builder.Services.AddDbContext<dbContextName>(options=options.UseSqlServer(Configuration.getConnectionString("")));
+
+This is how we use to get the data from DB using database first approch.
+
+
+===================================================================================
+Next 
+Integrating React application with Api
+Create a fetch function get the data from api. pass the api URL. 
+ const GetLoginData=()=>{
+  fetch("https://localhost:7299/api/Login").then(Response=>Response.json()).then(data=>{
+    console.log(data);
+  })
+}
+After adding the above code, we may get error when we running the application  because both react and dot net application are running on different domains. Need to integrate both using cors
+CORS - Cross-Origin Resource Sharing (CORS) 
+The React app - URL (http://localhost:5173/) and Web APi URL(https://localhost:7299/swagger/index.html) Port is different. So the origion of the domain is different from 2 application. that is why the api is 
+not accepting the request from the React application. For that we need to make some changes in the web api to accept the request from React application.
+
+Add below peice of code into program.cs file above build "var app = builder.Build();" method.
+//For Cors - Cross origin resource sharing
+var allowedOrigins = "_allowedOrigins";
+builder.Services.AddCors(options => options.AddPolicy(name: allowedOrigins,
+    policy =>
+    {
+        policy.WithOrigins("http://localhost", "http://localhost:5173") //frontend url
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .SetIsOriginAllowedToAllowWildcardSubdomains();
+    }));
+ than call the created function below redirection methods "app.UseHttpsRedirection();" 
+app.UseCors(allowedOrigins);
+
+We have complted read operation from APi to react. ANd we have 3 more operations in CURD operations
+ We will achive them once by one
+==================================================================================
+Props are used to pass data from parent to child components, while state is used to manage data that can change over time within a component
+What are state variables in react
+In React, a state variable is a special kind of variable used within a component to store data that can change over time and 
+trigger re-renders of the component when updated. It essentially provides a component with "memory."
+
+Example; lets assume, we want to fetch the data based on the value that we are submitting on the farm. You see the data will be refreshed for that variable and it has to rememberd by any component
+in which the vriable is available. So far that we have to set the state of the variable.
+Whenever we want the component to remember some information at that time we are using the state variables.
+How we are setting the state variables using react HOOKs
+1. useState
+2. useEffect
+
+write the below code
+
+import { useEffect, useState } from "react";
+import type { loginInformation } from "../../Interfaces/Login/LoginData";
+import UserInfo from "../UserInfo/UserInfo";
+
+function Login() {
+  const [logininformation, setLogininformation] = useState<loginInformation[]>([]);
+
+  useEffect(() => {
+    fetch("https://localhost:7299/api/Login")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Fetched data:", data);
+        setLogininformation(data);
+      })
+      .catch((err) => console.error("Fetch error:", err));
+  }, []);
+
+  return (
+    <>
+      {logininformation.length > 0 ? (
+        logininformation.map((result) => (
+          <UserInfo
+            key={result.id}
+            FIRSTNAME={result.firstname}
+            LASTNAME={result.lastname}
+          />
+        ))
+      ) : (
+        <p>No Data</p>
+      )}
+    </>
+  );
+
+
+  // return (
+  //   <>
+  //     {logininformation.length > 0 ? (
+  //       logininformation.map((result) => {
+  //         return <UserInfo  
+  //         key={result.id} 
+  //         FIRSTNAME={result.firstname} 
+  //         LASTNAME={result.lastname} 
+  //         />
+  //       })):
+  //       (<p>No Data</p>)
+  //       }
+  //   </>
+  // )
+
+}
+
+export default Login;
+
+
+
+for curly braces we need return and for braces we dont need return.
+
+
+If you face below error. while running siply we need to run the npm cmd to fix the issue.
+ Error:  Each child in a list should have a unique "key" prop. Check the render method of `App`. It was passed a child from login. See 
+ Statement: The child components are refereiing, which is happening to the usage of map function.  
+ Solution: go to terminal and run "npm install react-uuid"
+ this will simple we are doing to generate the (UUID) unique id, that can be passed as key to each of the child for from this map function.
+ each of the child in the list there will be a unique key in the list. 
+
+Finally all the data displaying on the browser 
+======================================================================================
+
+points:
+React treats lowercase tags (<login />) as HTML elements, not components so if you ever use <login />, it won’t render properly.
+Make usre what your api expecting lowercase or upper case
+ 
+ 
+Installed Material UI to as a CSS using following command
+npm install @mui/material @emotion/react @emotion/styled
+
+to install bootstarp on react app use following command
+npm install react-bootstarp bootstarp
+
+Import it in Main.tsx
+import "bootstarp/dist/bootstarp/bootstarp.min.css"; or @import 'bootstrap/dist/css/bootstrap.min.css'; put in index.css
+
+==============================================
+Created post method in api to insert data to the table and test the api
+Use. _context."datasetName".SaveChangeAsync() to save the changes to DB.
+
+==================================================
+for routing in react we need to install routing packages
+npm install -save react-router-dom
+after installing the packages just install types this will install the types for the react router dom for the project
+npm install --save @types/react-router-dom
+After this create a folder/file called Routes.tsx and start coding
+===========================================================
+Points
+1. in the Routes.tsx file export createBrowserRouter function it has 3 elements, Path, Element, Childern.
+	in Main path menthin "/"
+	in elements mention the <app/> as it is the main component that execute first
+	in childern keep repeating path and elements in json format what all the routes you required with / ex: "/Login"
+2. Keep only common component like header in the app.jsx file and 
+3. in order to work we have to make 2 major changes
+	a. Use the <Outlet /> element which is from the "react-router-don" 
+	b. in main.tsx. rendering is happening through app.tsx now rendering is changes through router.jsx file. So update the main.tsx with RouterProvider component.
+		<RouterProvider router={router} /> import router from Route.tsx file.
+		
+=========================================================================
+Submitting Form Data
+1. Create the initial values using useState() method. these are the value set initially. Use the interface was created to for properties of that form.
+2. Map the input field with the properties using Name field in the controls. Name = ""
+3. Map the controls to the default values using UseState object
+4. Whenevr user changing the value we need to capture the changed value. to do that
+	a. Create a function handleInputChange and input type as event and any "const handleInputChange=(event:any)=>{}"
+	b. Take name of each of the input field and value throught the event.target "const{name, value} = event.target;"
+	c. Set the form data using set method was created above in UseState(). You can't set simply as it is the object and having multiple properties. for that take the 
+		previous form data and and we have that, use the elips form previous form data take the name and assign the value. 
+		"setRegistrationData((prevFormData) => ({...prevFormData, [name]: value}));"
+	d. Call the OnChange property on the control and call the handleInputChange function. "onChange={handleInputChange}"
+	e. for the checkbox checed. use the below code. as it requrird value is checked or not.
+		if(name = "MovingFlag" //name of the checkbox)
+		{
+			value = event.target.checked;
+		}
+		and change the const to let. as it is not constatnt value. "let {name, value} = event.target;"
+	d. Once the form data is ready 
+		a. We need to create a function to submit the form on "onSubmit={}" properties.
+			function "const submitRegistationFormData=(event)=>{}"
+		b. We dont want to refersh the page once we submit the page for that use "event.preventDefault"
+		c. Just use the consol.log weather you can able to capture all the form data or not. "console.log("Form submitted:", registrationData);"
+	e. The form data is ready to to pass it to the api.  we have created the form data right interface, this is the one we use to submit the data to the api.
+	f. After submitting the form data pass the form data to the interface properties using useState Variable.for the create the variable called requrest data.
+		ex: const requestData: loginInformation = {
+            firstname: registrationData.firstname,
+            lastname: registrationData.lastname
+			}
+===========================================================================
+Returning data back to api
+1. Create the respons model to bind the data and return in the response
+2. Add the newtonsoft reference and convert the string into Json result.  var result = JsonConvert.SerializeObject(addLoginResponse);
+3. Call the post api url in the UI to post the records and insert into DB.
+=================================================
+Update Operation
+1. Updating is done by based on the conditions. (record should be iniquely identified.) using HTTPPut method.
+2. Using .Entry object. try to find the existing entry in the DB. if entry esits than only update the records.
+	_dbcontext.Entry(reuest).State=EntityState.Modified.
+3. 
+
+integrate with UI
+Points
+use ? to make the properity is optional. ex: "id?: number;"
+change the width of the column use clasname='col-1'
+
+1. Use the bootstrap model pop up to create the model up
+	a. Create Modal pop using/importing react-bootstrap
+	b. Modal.Header -> header should have close button and title. 
+		 <Modal>
+            <Modal.Header closeButton>
+                <Modal.Title>Edit the login details</Modal.Title>
+            </Modal.Header>
+        </Modal>
+	c. to close and open the popup can done by porperties. Before that create state variable to control that.
+	const [showModal, setShowModal]=useState(false); false mean hiding the variables. 
+	d. showModal = true open the Modal and showModal =  false close the Modal
+	e. this can be done when we click on the edit button on the table view. 
+	f. Write 2 function that can ge called when we click on edit button and when we click on close button to Show and hide the popup.
+		{/*Setting Show modal state variable to control modal poupp open */}
+		const openEditModal = () =>{
+			setShowModal(true);
+		}
+		{/*Setting Show modal state variable to control modal poupp close */}
+		const closeEditModal = () =>{
+			setShowModal(false);
+		}
+	g.  Model popup with closebutton
+		{/*Creating the model popup */}
+        <Modal show={showModal} onHide={closeEditModal} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Edit the user details</Modal.Title>
+            </Modal.Header>
+            <Module.body>Data comes here</Module.body>
+        </Modal>
+	
+2. Pass the Register component(Same component used for creating user as well) in the body of the model popup.
+	a. <Modal.Body><Register/></Modal.Body>
+	b. Make changes in the Register component that should accept the props so that we can control the component based on the edit and create call.
+		type props={
+			source:string
+		}
+		const Register = ({source}: props) => {
+		<Modal.Body className="bg-dark"><Register source="edit"/></Modal.Body> and one more component that is in routes element: <Register source="create"/>
+	c. This will help the component to differeciate between the sources.
+		{source=="create" ? "User Register" : "Edit User"}
+		<div className={source=="create" ? "d-flex justify-content-center align-items-center":""}>
+		{source=="create" ? "Register" : "Save Updates" } 
+3. Behind the sceen when we click on the edit details pass the data to the edit widnow to edit.
+	a. Edit can done based on the id. 
+	b. and same component accept the props which are passing from the edit page.
+		type props = {
+			source: string,
+			editDetails: loginInformation
+		}
+
+		const Register = ({ source, editDetails }: props) => {
+	c. make the editDetails prop as optional as we dont want to pass it from create page.  for that use the ?? on the property
+		editDetails? : loginInformation
+	d. But we want it to pass it from profile component. so far that from where we wanted to get it from
+	e. Each row in the table we have an edit butoon associate with it. when we click on edit button take the respected row id and get the required row data and pass it to the component.
+	f. edit the created openEditModal funtion and pass the row id into the function and same function should accept the id created. 
+		onClick={() => { openEditModal(user.id) }}>
+	g. create the useState variable to get the required editing row.
+		const [selectedRow,setSelectedRow]=useState<loginInformation>();
+	h. Find the required row id data from the userProfileData object was used to get the profile data.
+		 const openEditModal = (id: any) => {
+			setShowModal(true);
+			
+			const row = userProfileData.find(row=>row.id==parseInt(id))
+			setSelectedRow(row);
+		}
+	i. Pass the data to the popup window component "Register" and bind the captured data on the properties based on the source.
+		 const [registrationData, setRegistrationData] = useState(source=="create" ? {
+			firstname: "",
+			lastname: ""
+		}:{
+			 firstname: editDetails?.firstname,
+			 lastname: editDetails?.lastname
+		});
+	j. looks we may get error in the model variable created when we submitting the data back to the api like strings undefined. for this we can by pass using ?? conditional operator.
+		const requestData: loginInformation = {
+            firstname: registrationData.firstname ?? "",
+            lastname: registrationData.lastname ?? ""
+        }
+		note: for boolen variable give false.
+	
+3. Submit the form to update the details.
+	a. we have already created the function to submit the form. but that function was used to create the records
+	b. to update the records , differentiate the call based on souce props and pass the id and change the url and the method on the request 
+	c. this will call the put method and updates the records on the DB.
+	
+================================================================
+Delete operation
+delete operation can done using an id, or else whole table will delete
+If i want to delete the records by id than we dont want to pass set of records as a paramters on the delete function. 
+
+make the connection for API from React application
+1. on the same profile UI we add another button called delete, to delete the records.
+2. Add the model pop up to give the message to the user.
+	<Modal>
+		<Modal.Header>
+			<Modal.Title>Delete Records</Modal.Title>
+		</Modal.Header>
+		<Modal.Body>
+			<p>are you sure you want to delete the records</p>
+		</Modal.Body>
+		<Modal.Footer>
+			<button className="btn btn-secondary">Cancel</button>
+			<button className="btn btn-danger">Delete</button>
+		</Modal.Footer>
+	</Modal>
+3. Create another state variable to for open and close the Delete model popup and set initial value as false.
+	const [deleteModal, setdeleteModal] = useState(false);
+4. create 2 functions OpenDelete model and CloseDelete open and set the setdeleteModal variable as true and false
+	const openDeleteModal = () => {
+        setdeleteModal(true);
+    }    
+    const closeDeleteModal = () => {
+        setdeleteModal(false);
+    }
+5. Call these 2 functions, 1st is on delete buttion click to show delete model popup and 2nd is on hide method of the model popup
+	<button className="btn btn-danger w-25" onClick={()=>openDeleteModal()}>
+		Delete
+	</button>		And
+	<Modal show={deleteModal} onHide={closeDeleteModal} centered>
+6. Call the same {closeDeleteModal} function on the cancel button of the delete modal popup.
+	<button className="btn btn-secondary" onClick={closeDeleteModal}>Cancel</button>
+7. implementing the functionality for the delete button. 
+8. how do we get the id to delete the records
+	a. First we need to create the statevariable to get the id.
+		const [idToDelete, setIdToDelete] = useState(0); initial value is 0 as we dont have record at 0th element.
+	b. as soon as i click on the delete button i should get the id. and keep it ready to delete if user confirmed.
+	c. to do that pass the id on the openDeleteModal function was called in the delete method and set to the setIdToDelete variable.
+		const openDeleteModal = (id: any) => {
+			setdeleteModal(true);
+
+			setIdToDelete(id);
+		}
+	d. and create another function called DeleteRecord and pass the captured id to the function.
+		const DeleteRecord=()=>{
+			const id = idToDelete;
+		}
+	e. Create a request to delete the record it should be delete request and use the below URL to call the Api
+		https://localhost:7299/api/Login?id=1
+		const DeleteRecord=()=>{
+			const id = idToDelete;
+
+			//Creating the request to delete the record
+				const reqestOptins = {
+					method: 'DELETE',
+					headers: { 'Content-type': 'application/json' }
+				}
+
+				//Calling api
+				fetch('https://localhost:7299/api/Login?id='+id.toString(), reqestOptins)
+					.then(response => response.json())
+					.then(data => console.log(data));
+		}
+	f. run the application and it should delete the record.
+==================================================================================================
+All the CRUD operationals are implemented.
+for UI perspective.  BETTER LOOK AND FEEL
+1. once we edit or delete the records the pop up should close automatically and page should be refreshed.
+===========================
+1. this is for delete popup
+2. Create response message interface 
+	export interface Responses{
+	  ResponseMessage : string;
+	}
+3. when deleting the records, capture the response message getting it from api to the created interface string and assign. 
+	 const response: Responses = { ResponseMessage: data.ResponseMessage }
+4. Compare the string with expected message from api. if expected message is equal to the response message than close the pop up model. 
+5. Create another model to show Response message.
+	<Modal centered>
+		<Modal.Header>
+			<Modal.Title>messages</Modal.Title>
+		</Modal.Header>
+		<Modal.Body>
+			<p>Record deleted Successfully</p>
+		</Modal.Body>
+	</Modal
+6. create another 2 state variable for respomseModel show and hide and set responsemEssage to show on the popup
+	const [responseModal, setResponseModal]= useState(false);
+    const[responseMessage, setResponseMessage]= useState("");
+7. and when we are closing the delete modal set reponsMessage and ResponseModel variable
+	 // Setting response message and openeing responseMessageModal                    
+		 setResponseMessage(response.ResponseMessage);
+		 setResponseModal(true);
+8. Create a closeReposeModal method  to close the responsemodal and pass it to the modal 
+	const CloseResponseModal = () =>
+	{
+		setResponseModal(false);
+	}
+
+	 {/*Creating the model popup for Show response message */}
+		<Modal show={responseModal} onHide={CloseResponseModal} centered>
+			<Modal.Header>
+				<Modal.Title>Message</Modal.Title>
+			</Modal.Header>
+			<Modal.Body>
+				<p>{responseMessage}</p>
+			</Modal.Body>
+		</Modal>
+===============================================
+1. create another popup for edit.
+	a. challege is for this pop up is - we are opening the edit pop from profile component and added register component as a child pop up or child component is used in the edit popup. 
+	b. So we need to open the popup from register component when we close the window of edit popup, we cant simply open it from the main page.
+	c. in order to do that pas the some information from parern to child component
+		1. add new props that will pass the information. 
+		2. new props would be the setter for the statevraiable that we have as a optional parameter
+				type props = {
+				source: string,
+				editDetails?: loginInformation,
+				setShowModal?: any,
+				setResponseModal?: any,
+				setResponseMessage?: any
+			}
+		3. when we calling the edit api and make the changes to method.
+	
+
+=======================================================================================================
+=======================================================================================================
+Important Calls on APis
+1. GET
+var result = await _context.DataSet.ToListAsync();
+2. POST
+ _context.DataSet.Add(login);
+ await _context.SaveChangesAsync();
+3. PUT
+ _context.Entry(login).State = EntityState.Modified;
+ await _context.SaveChangesAsync();
+4. DELETE
+var login = await _context.DataSet.FindAsync(id);
+if (login == null)
+{
+    return "Login Info Not Found";
+}
+_context.DataSet.Remove(login);
+await _context.SaveChangesAsync();
+
+This is common for POST, PUT and DELETE
+AddLoginResponse addLoginResponse = new AddLoginResponse { ResponseMessage = message };
+var result = JsonConvert.SerializeObject(addLoginResponse);
+return message;
+=======================================================================================================
+=======================================================================================================
+
+	
+	
+		
+	
+	
+		
+	
+
+
+		
+	
+	
+
+
+
+
+
+
+

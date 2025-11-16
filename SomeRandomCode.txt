@@ -1,0 +1,151 @@
+import { useEffect, useState } from "react"
+import type { loginInformation } from "../../Interfaces/Login/LoginData"
+import UserInfo from "../UserInfo/UserInfo";
+
+
+function login() {
+  const [logininformation, setLogininformation] = useState<loginInformation[]>([])
+
+  useEffect(() => {
+    fetch("https://localhost:7299/api/Login")
+      .then(Response => Response.json())
+      .then(data => {
+        setLogininformation(data);
+      });
+  }, [])
+
+  useEffect(() => {
+    console.log(logininformation)
+  }, [logininformation]);
+
+  return (
+    <>
+      {logininformation.length > 0 ?
+        (logininformation.map((result) => {
+          return <UserInfo  key={result.ID} FIRSTNAME={result.FIRSTNAME} LASTNAME="Kumar" />
+        })) :
+        (<p>No Data</p>)}
+
+      <div>
+        <UserInfo FIRSTNAME={"Prashanth"} LASTNAME={"Patil"} />
+      </div>
+    </>
+  )
+}
+export default login
+
+
+// const handleInputChange = (e:any) => {
+    //     const { name, value } = e.target;
+    //     setRegistrationData((prevFormData) =>({
+    //         ...prevFormData,
+    //         [name]: value
+    //     }));
+    // };
+	
+
+
+  // return (
+  //   <>
+  //     {logininformation.length > 0 ? (
+  //       logininformation.map((result) => (
+  //         <UserInfo
+  //           key={result.id}
+  //           firstName={result.firstname}
+  //           lastName={result.lastname}
+  //         />
+  //       ))
+  //     ) : (
+  //       <p>No Data</p>
+  //     )}
+  //   </>
+  // );	
+  
+ //css on the button w-50 bg-indigo-400 text-white py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 justify-content-center col-2
+ 
+ 
+ for registaton form
+ 
+ import { useState } from "react";
+import type { loginInformation } from "../../Interfaces/Login/LoginData";
+
+
+
+const Register = () => {
+
+    {/* Created Initial values what it generally takes*/ }
+    const [registrationData, setRegistrationData] = useState({
+        firstname: "",
+        lastname: ""
+    });
+
+    {/* to hande the input changes on the controls */}
+    const handleInputChange = (event: any) => {
+        let { name, value } = event.target;
+        setRegistrationData((prevFormData) => ({ ...prevFormData, [name]: value }));
+    }
+
+    {/* submitting the form */}
+    const submitRegistationFormData = (event: any) => {
+        // {/* Preventing form submitting back to server. */}
+        event.preventDefault();
+
+        //Bind data back to the model variables
+        const requestData: loginInformation = {
+            firstname: registrationData.firstname,
+            lastname: registrationData.lastname
+        }
+
+        //Creating the request
+        const reqestOptins = {
+            method: 'post',
+            headers: { 'Content-type': 'application/json' },
+            body: JSON.stringify(requestData)
+        }
+        
+        //Calling api
+        fetch('https://localhost:7299/api/Login',reqestOptins)
+        .then(response=>response.json())
+        .then(data=>console.log(data));
+
+    }
+
+    return (
+        <>
+            {/* <div className="flex items-center justify-center min-h-screen bg-gray-100"> */}
+                <form className="bg-white p-6 rounded-lg shadow-md w-full max-w-2xl" onSubmit={submitRegistationFormData}>
+                    <h2 className="text-2xl font-bold mb-4 text-center text-gray-700">
+                        User Register
+                    </h2>
+
+                    {/* First Name */}
+                    <div className="mb-4">
+                        <label htmlFor="firstName" className="block text-gray-600 text-sm font-medium mb-2">
+                            First Name
+                        </label>
+                        <input type="text" id="firstName" name="firstname" defaultValue={registrationData.firstname} placeholder="Enter first name" required
+                            onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        />
+                    </div>
+
+                    {/* Last Name */}
+                    <div className="mb-4">
+                        <label htmlFor="lastname" className="block text-gray-600 text-sm font-medium mb-2">
+                            Last Name
+                        </label>
+                        <input type="text" id="lastname" name="lastname" defaultValue={registrationData.lastname} placeholder="Enter last name" required
+                            onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        />
+                    </div>
+
+                    {/* Submit Button */}
+                    <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors duration-200">
+                        Register
+                    </button>
+                </form>
+            {/* </div> */}
+        </>
+    )
+}
+
+export default Register;
