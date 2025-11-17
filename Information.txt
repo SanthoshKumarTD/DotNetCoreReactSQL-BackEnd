@@ -4,7 +4,6 @@ Moving forward, we are developing a small application utilizing React and .NET C
 ==============================================================================================================================
 											Starting with Front End
 ==============================================================================================================================
-To create empty project
 1. For the front end, we are utilizing React. To set up a React application, it is necessary to install Node.js from the following website: https://nodejs.org/en/download
 2. To verify that Node.js has been installed correctly, use the command:
 node -v in the command prompt.
